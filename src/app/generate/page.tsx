@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from "../authcontext";
+import { useRouter } from "next/navigation";
 import {
     Container,
     TextField,
@@ -10,51 +12,53 @@ import {
     Grid,
     Card,
     CardContent,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    DialogContentText
 } from '@mui/material'
-import { collection, doc, getDoc, writeBatch } from 'firebase/firestore'
+import { collection, doc, setDoc, writeBatch, addDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 
 export default function Generate() {
+    const router = useRouter();
+    const { user, logout } = useAuth();
     const [text, setText] = useState('')
     const [flashcards, setFlashcards] = useState([])
-    const [setName, setSetName] = useState('')
+    const [name, setName] = useState('')
     const [dialogOpen, setDialogOpen] = useState(false)
     const handleOpenDialog = () => setDialogOpen(true)
     const handleCloseDialog = () => setDialogOpen(false)
 
+
     const saveFlashcards = async () => {
-        if (!setName.trim()) {
+        if (!name.trim()) {
             alert('Please enter a name for your flashcard set.')
             return
         }
 
         try {
-            const userDocRef = doc(collection(db, 'users'), user.id)
-            const userDocSnap = await getDoc(userDocRef)
+            console.log(user?.toJSON())
+            const collectionRef = doc(db, 'users', user?.uid, 'flashcardSets', name);
 
-            const batch = writeBatch(db)
-
-            if (userDocSnap.exists()) {
-                const userData = userDocSnap.data()
-                const updatedSets = [...(userData.flashcardSets || []), { name: setName }]
-                batch.update(userDocRef, { flashcardSets: updatedSets })
-            } else {
-                batch.set(userDocRef, { flashcardSets: [{ name: setName }] })
-            }
-
-            const setDocRef = doc(collection(userDocRef, 'flashcardSets'), setName)
-            batch.set(setDocRef, { flashcards })
-
-            await batch.commit()
+            await setDoc(collectionRef, {
+                flashcards
+            });
 
             alert('Flashcards saved successfully!')
             handleCloseDialog()
-            setSetName('')
+            setName('')
+
+            router.push(`/flashcards`)
+
         } catch (error) {
             console.error('Error saving flashcards:', error)
             alert('An error occurred while saving flashcards. Please try again.')
         }
     }
+
+
     const handleSubmit = async () => {
         if (!text.trim()) {
             alert('Please enter some text to generate flashcards.')
@@ -64,7 +68,10 @@ export default function Generate() {
         try {
             const response = await fetch('/api/generate', {
                 method: 'POST',
-                body: text,
+                body: JSON.stringify({ text }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             })
 
             if (!response.ok) {
@@ -72,7 +79,8 @@ export default function Generate() {
             }
 
             const data = await response.json()
-            setFlashcards(data)
+            setFlashcards(data.flashcards)
+
         } catch (error) {
             console.error('Error generating flashcards:', error)
             alert('An error occurred while generating flashcards. Please try again.')
@@ -93,7 +101,12 @@ export default function Generate() {
                     multiline
                     rows={4}
                     variant="outlined"
-                    sx={{ mb: 2 }}
+                    sx={{
+                        mb: 2,
+                        '& .MuiFilledInput-root': {
+                            backgroundColor: 'white'
+                        }
+                    }}
                 />
                 <Button
                     variant="contained"
@@ -132,6 +145,30 @@ export default function Generate() {
                     </Button>
                 </Box>
             )}
+
+            <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+                <DialogTitle>Save Flashcard Set</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Please enter a name for your flashcard set.
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Set Name"
+                        type="text"
+                        fullWidth
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog}>Cancel</Button>
+                    <Button onClick={saveFlashcards} color="primary">
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     )
 }
