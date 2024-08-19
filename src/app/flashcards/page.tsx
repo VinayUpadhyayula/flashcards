@@ -45,8 +45,18 @@ export default function Flashcards() {
     }, [user])
 
 
-    const handleCardClick = (id) => {
+    const handleCardClick = (id:any) => {
         router.push(`/flashcard?id=${id}`)
+    }
+    const handleGenerateClick = ()=>{
+        if(user)
+        {
+            router.push('/generate');
+        }
+        else
+        {
+            router.push('/');
+        }
     }
 
     return (
@@ -58,7 +68,7 @@ export default function Flashcards() {
                 <Typography variant="h5" component="h2" gutterBottom>
                     The easiest way to create flashcards from your text.
                 </Typography>
-                <Button variant="contained" color="primary" sx={{ mt: 2, mr: 2 }} href="/generate">
+                <Button variant="contained" color="primary" sx={{ mt: 2, mr: 2 }} onClick={handleGenerateClick}>
                     Get Started
                 </Button>
                 <Button variant="outlined" color="primary" sx={{ mt: 2 }}>

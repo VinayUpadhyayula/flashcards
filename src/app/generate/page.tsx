@@ -30,7 +30,19 @@ export default function Generate() {
     const [dialogOpen, setDialogOpen] = useState(false)
     const handleOpenDialog = () => setDialogOpen(true)
     const handleCloseDialog = () => setDialogOpen(false)
-
+    
+    useEffect(() => {
+        if (!user) {
+            router.push('/');
+        }
+    }, [user, router]);
+    
+    const inputProps = {
+        style: {
+            color: 'white', // Set text color to white
+          },
+      };
+      
 
     const saveFlashcards = async () => {
         if (!name.trim()) {
@@ -40,7 +52,8 @@ export default function Generate() {
 
         try {
             console.log(user?.toJSON())
-            const collectionRef = doc(db, 'users', user?.uid, 'flashcardSets', name);
+            if(user && user.uid){
+            const collectionRef = doc(collection(db, 'users', user?.uid, 'flashcardSets'),name);
 
             await setDoc(collectionRef, {
                 flashcards
@@ -51,6 +64,7 @@ export default function Generate() {
             setName('')
 
             router.push(`/flashcards`)
+        }
 
         } catch (error) {
             console.error('Error saving flashcards:', error)
@@ -103,10 +117,8 @@ export default function Generate() {
                     variant="outlined"
                     sx={{
                         mb: 2,
-                        '& .MuiFilledInput-root': {
-                            backgroundColor: 'white'
-                        }
                     }}
+                   inputProps={inputProps}
                 />
                 <Button
                     variant="contained"
