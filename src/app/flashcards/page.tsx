@@ -18,7 +18,7 @@ import {
 import { Suspense } from 'react';
 
 
-function FlashcardComponent() {
+function FlashcardsComponent() {
     const { user, logout } = useAuth();
     const router = useRouter();
     const [flashcardNames, setFlashcardNames] = useState<string[]>([])
@@ -107,10 +107,10 @@ function FlashcardComponent() {
         </div>
     );
 }
-export default function FlashcardPage() {
+export default function FlashcardsPage() {
     return (
       <Suspense fallback={<div>Loading...</div>}>
-        <FlashcardComponent />
+        <FlashcardsComponent />
       </Suspense>
     );
   }

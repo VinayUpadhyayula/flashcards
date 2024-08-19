@@ -2,7 +2,7 @@
 import { Box, Typography } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuth } from "../authcontext";
-import { useEffect, useState, } from "react";
+import { Suspense, useEffect, useState, } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { db } from '../firebase'
 import { collection, doc, getDoc, DocumentData } from 'firebase/firestore'
@@ -15,15 +15,21 @@ import {
 } from '@mui/material'
 
 
-export default function Flashcard() {
+function FlashcardComponent() {
     const { user, logout } = useAuth();
     const [flashcardData, setFlashcards] = useState<DocumentData[]>([]);
     const [flipped, setFlipped] = useState<Record<number, boolean>>({});
+    const router = useRouter();
 
     const searchParams = useSearchParams()
     const flashcardName = searchParams.get('id')
-    console.log(flashcardName)
+    // console.log(flashcardName)
 
+    useEffect(() => {
+        if (!user) {
+            router.push('/');
+        }
+    }, [user, router]);
     useEffect(() => {
         async function getFlashcard() {
             if (!flashcardName || !user) return
@@ -113,3 +119,10 @@ export default function Flashcard() {
         </Container >
     )
 }
+export default function FlashcardPage() {
+    return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <FlashcardComponent />
+      </Suspense>
+    );
+  }
