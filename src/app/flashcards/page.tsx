@@ -24,7 +24,7 @@ export default function Flashcards() {
     const [flipped, setFlipped] = useState({})
 
     const searchParams = useSearchParams()
-    const search = searchParams.get('id')
+    const search =searchParams?.get('someParam') ?? 'default value'
 
     useEffect(() => {
         if (!user) {
