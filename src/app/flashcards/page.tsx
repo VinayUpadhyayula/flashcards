@@ -15,16 +15,17 @@ import {
     CardActionArea,
     CardContent,
 } from '@mui/material'
+import { Suspense } from 'react';
 
 
-export default function Flashcards() {
+function FlashcardComponent() {
     const { user, logout } = useAuth();
     const router = useRouter();
     const [flashcardNames, setFlashcardNames] = useState<string[]>([])
     const [flipped, setFlipped] = useState({})
 
     const searchParams = useSearchParams()
-    const search =searchParams?.get('someParam') ?? 'default value'
+    const search =searchParams.get('id')
 
     useEffect(() => {
         if (!user) {
@@ -106,3 +107,10 @@ export default function Flashcards() {
         </div>
     );
 }
+export default function FlashcardPage() {
+    return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <FlashcardComponent />
+      </Suspense>
+    );
+  }
